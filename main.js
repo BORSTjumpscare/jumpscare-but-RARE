@@ -84,44 +84,38 @@ function executeJumpscare() {
     fullscreenOverlay.style.left = "0";
     fullscreenOverlay.style.width = "100vw";
     fullscreenOverlay.style.height = "100vh";
-    fullscreenOverlay.style.zIndex = "9999"; // Ensure it's on top
+    fullscreenOverlay.style.zIndex = "9999";
 
     const jumpscareGif = document.createElement("img");
     jumpscareGif.src = chrome.runtime.getURL("assets/fredbear.gif");
     jumpscareGif.style.width = "100%";
     jumpscareGif.style.height = "100%";
-    jumpscareGif.style.objectFit = "cover"; // Ensure image covers area
+    jumpscareGif.style.objectFit = "cover";
 
     const jumpscareAudio = document.createElement("audio");
     jumpscareAudio.src = chrome.runtime.getURL("assets/audio.mp3");
-    jumpscareAudio.setAttribute("autoplay", "true"); // Start playing immediately
+    jumpscareAudio.setAttribute("autoplay", "true");
 
     const fullscreenStatic = document.createElement("img");
     fullscreenStatic.src = chrome.runtime.getURL("assets/static.gif");
     fullscreenStatic.style.width = "100%";
     fullscreenStatic.style.height = "100%";
-    fullscreenStatic.style.objectFit = "cover"; // Ensure image covers area
+    fullscreenStatic.style.objectFit = "cover";
 
-    // Append gif to overlay
     fullscreenOverlay.appendChild(jumpscareGif);
-
-    // Append audio to overlay
     fullscreenOverlay.appendChild(jumpscareAudio);
-
-    // Append overlay to document body
     document.body.appendChild(fullscreenOverlay);
 
-    // Handle jumpscare audio and gif
     jumpscareGif.addEventListener("load", () => {
         jumpscareAudio.play();
-        // Jumpscare gif is 1.5 seconds long
+
         setTimeout(() => {
-            // Remove Freddy gif
             fullscreenOverlay.removeChild(jumpscareGif);
             fullscreenOverlay.appendChild(fullscreenStatic);
-        }, 1500); // Assuming the gif lasts 1.5 seconds
+
+            setTimeout(() => {
+                fullscreenOverlay.remove();
+            }, 3000);
+        }, 1500);
     });
 }
-
-// Execute the jumpscare function
-overlayJumpscare();
