@@ -1,151 +1,171 @@
-console.log("FNAF jumpscare content script loaded!");
+console.log("FNAF jumpscare loaded!");
 
-// --- Flags ---
-let jumpscare = false;
+// ----------------------------
+// STATE
+// ----------------------------
+let jumpscareActive = false;
 let jumpscareQueued = false;
+let userInteracted = false;
 
-// --- Secret combo ---
+// Secret combo: 1 → 9 → 8 → 7
 const secretCombo = ["1", "9", "8", "7"];
 let comboIndex = 0;
 let comboTimer = null;
-const comboTime = 3000; // 3 seconds to complete combo
+const comboTimeLimit = 3000;
 
-// --- Random delay helpers ---
-function randomDelay() { return Math.floor(Math.random() * 10000); }
-function randomCheckDelay() { return Math.floor(Math.random() * 5000); }
+// ----------------------------
+// USER INTERACTION UNLOCK
+// ----------------------------
+document.addEventListener("click", () => userInteracted = true);
+document.addEventListener("keydown", () => userInteracted = true);
 
-// --- Check if tab is focused ---
-function isTabFocused() {
-    return new Promise(resolve => {
-        chrome.runtime.sendMessage({ action: "checkFocus" }, response => {
-            resolve(response?.isFocused ?? false);
-        });
-    });
+// ----------------------------
+// SECRET CODE (CAPTURE PHASE)
+// ----------------------------
+document.addEventListener("keydown", (e) => {
+    if (e.ctrlKey || e.altKey || e.metaKey) return;
+
+    if (e.key === secretCombo[comboIndex]) {
+
+        if (comboIndex === 0) {
+            comboTimer = setTimeout(() => {
+                comboIndex = 0;
+            }, comboTimeLimit);
+        }
+
+        comboIndex++;
+
+        if (comboIndex === secretCombo.length) {
+            console.log("[FNAF] Secret combo activated!");
+            comboIndex = 0;
+            clearTimeout(comboTimer);
+            triggerJumpscare();
+        }
+
+    } else {
+        comboIndex = 0;
+        if (comboTimer) clearTimeout(comboTimer);
+    }
+
+}, true); // capture phase = works in inputs too
+
+// ----------------------------
+// RANDOM QUEUE SYSTEM
+// ----------------------------
+function scheduleRandomCheck() {
+    if (jumpscareActive) return;
+
+    setTimeout(() => {
+        if (Math.random() < 0.03) {
+            jumpscareQueued = true;
+        }
+        scheduleRandomCheck();
+    }, Math.floor(Math.random() * 10000));
 }
 
-// --- Execute jumpscare ---
-function executeJumpscare() {
-    if (jumpscare) return;
-    jumpscare = true;
+scheduleRandomCheck();
+
+// ----------------------------
+// RANDOM EXECUTION CHECK
+// ----------------------------
+function scheduleExecutionCheck() {
+    setTimeout(() => {
+
+        if (
+            jumpscareQueued &&
+            !jumpscareActive &&
+            userInteracted &&
+            document.hasFocus()
+        ) {
+            if (Math.random() >= 0.5) {
+                triggerJumpscare();
+            } else {
+                console.log("[FNAF] Freddy backed out...");
+                jumpscareQueued = false;
+            }
+        }
+
+        scheduleExecutionCheck();
+
+    }, Math.floor(Math.random() * 5000));
+}
+
+scheduleExecutionCheck();
+
+// ----------------------------
+// TRIGGER JUMPSCARE
+// ----------------------------
+function triggerJumpscare() {
+    if (jumpscareActive) return;
+    if (document.getElementById("fnaf-overlay")) return;
+
+    jumpscareActive = true;
+    jumpscareQueued = false;
 
     const overlay = document.createElement("div");
-    overlay.id = "fnaf-jumpscare-overlay";
+    overlay.id = "fnaf-overlay";
+
     Object.assign(overlay.style, {
         position: "fixed",
         top: "0",
         left: "0",
         width: "100vw",
         height: "100vh",
-        zIndex: "9999",
+        zIndex: "999999",
         backgroundColor: "rgba(0,0,0,0)",
         transition: "background-color 2s"
     });
+
     document.body.appendChild(overlay);
 
-    // Fade in
-    setTimeout(() => overlay.style.backgroundColor = "rgba(0,0,0,0.6)", 50);
-
-    // Jumpscare media
+    // Fade in darker
     setTimeout(() => {
+        overlay.style.backgroundColor = "rgba(0,0,0,0.6)";
+    }, 50);
+
+    // After fade → show jumpscare
+    setTimeout(() => {
+
         const img = document.createElement("img");
         img.src = chrome.runtime.getURL("assets/fredbear.gif");
-        Object.assign(img.style, { width: "100%", height: "100%", objectFit: "cover" });
+        Object.assign(img.style, {
+            width: "100%",
+            height: "100%",
+            objectFit: "cover"
+        });
 
         const audio = document.createElement("audio");
         audio.src = chrome.runtime.getURL("assets/audio.mp3");
         audio.volume = 1.0;
-        audio.autoplay = true;
-        audio.play().catch(() => console.log("[FNAF] Audio blocked"));
-
-        const staticImg = document.createElement("img");
-        staticImg.src = chrome.runtime.getURL("assets/static.gif");
-        Object.assign(staticImg.style, { width: "100%", height: "100%", objectFit: "cover" });
 
         overlay.appendChild(img);
         overlay.appendChild(audio);
 
-        img.addEventListener("load", () => {
-            audio.play();
-
-            setTimeout(() => {
-                overlay.removeChild(img);
-                overlay.appendChild(staticImg);
-
-                setTimeout(() => {
-                    overlay.remove();
-                    jumpscare = false;
-                    jumpscareQueued = false;
-                    console.log("[FNAF] Freddy can strike again.");
-                }, 3000);
-            }, 1500);
+        audio.play().catch(() => {
+            console.log("[FNAF] Audio blocked until interaction.");
         });
 
-        // --- Failsafe: remove overlay after 10s ---
         setTimeout(() => {
-            if (document.getElementById("fnaf-jumpscare-overlay")) {
-                overlay.remove();
-                jumpscare = false;
-                jumpscareQueued = false;
-                console.log("[FNAF] Failsafe triggered, overlay removed.");
-            }
+            img.src = chrome.runtime.getURL("assets/static.gif");
+        }, 1500);
+
+        setTimeout(() => {
+            removeOverlay();
+        }, 4500);
+
+        // Failsafe: hard remove after 10s
+        setTimeout(() => {
+            removeOverlay();
         }, 10000);
 
     }, 2000);
 }
 
-// --- Secret combo detection (works anywhere, even in inputs) ---
-document.addEventListener("keydown", e => {
-    // Ignore modifier keys
-    if (e.ctrlKey || e.altKey || e.metaKey) return;
-
-    if (e.key === secretCombo[comboIndex]) {
-        if (comboIndex === 0) {
-            comboTimer = setTimeout(() => comboIndex = 0, comboTime);
-        }
-
-        comboIndex++;
-
-        if (comboIndex === secretCombo.length) {
-            console.log("[FNAF] Secret combo triggered!");
-            if (!jumpscare) {
-                jumpscareQueued = true;
-                executeJumpscare();
-            }
-            comboIndex = 0;
-            if (comboTimer) clearTimeout(comboTimer);
-        }
-    } else {
-        comboIndex = 0;
-        if (comboTimer) clearTimeout(comboTimer);
-    }
-}, true); // <- capture phase ensures detection even in inputs
-
-// --- Main jumpscare loop ---
-async function jumpscareLoop() {
-    let interacted = false;
-    const markInteracted = () => { interacted = true; };
-    document.addEventListener("click", markInteracted);
-    document.addEventListener("keydown", markInteracted);
-
-    // Randomly queue jumpscare
-    while (!jumpscareQueued) {
-        await new Promise(r => setTimeout(r, randomDelay()));
-        if (Math.random() < 0.03) jumpscareQueued = true;
-    }
-
-    // Wait for tab focus and interaction
-    while (!jumpscare) {
-        await new Promise(r => setTimeout(r, randomCheckDelay()));
-        const focused = await isTabFocused();
-        if (focused && interacted && !jumpscare) {
-            if (Math.random() < 0.5) {
-                console.log("[FNAF] Freddy backed out!");
-            } else {
-                executeJumpscare();
-            }
-        }
-    }
+// ----------------------------
+// CLEANUP
+// ----------------------------
+function removeOverlay() {
+    const overlay = document.getElementById("fnaf-overlay");
+    if (overlay) overlay.remove();
+    jumpscareActive = false;
 }
-
-// --- Start ---
-jumpscareLoop();
