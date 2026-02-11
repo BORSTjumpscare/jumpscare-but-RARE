@@ -87,17 +87,11 @@ function executeJumpscare() {
     }, 2000);
 }
 
-// --- Secret combo: type 1 -> 9 -> 8 -> 7 within 3 seconds ---
-const secretCombo = ["1", "9", "8", "7"];
-let comboProgress = 0;
-let comboTimer = null;
-const comboMaxTime = 3000; // 3 seconds to complete combo
-
+// --- Secret combo: type 1 → 9 → 8 → 7 within 3 seconds ---
 document.addEventListener("keydown", (event) => {
-    // Check if the current key is the expected one in the sequence
     if (event.key === secretCombo[comboProgress]) {
         if (comboProgress === 0) {
-            // Start 3-second timer from the first key
+            // Start 3-second timer from first key
             comboTimer = setTimeout(() => {
                 comboProgress = 0;
                 comboTimer = null;
