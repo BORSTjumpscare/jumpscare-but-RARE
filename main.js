@@ -35,51 +35,50 @@ function executeJumpscare() {
 
     setTimeout(() => overlay.style.backgroundColor = "rgba(0,0,0,0.6)", 50);
 
-    setTimeout(() => {
-        const img = document.createElement("img");
-        img.src = chrome.runtime.getURL("assets/fredbear.gif");
-        Object.assign(img.style, { width: "100%", height: "100%", objectFit: "cover" });
+    const img = document.createElement("img");
+    img.src = chrome.runtime.getURL("assets/fredbear.gif");
+    Object.assign(img.style, { width: "100%", height: "100%", objectFit: "cover" });
 
-        const audio = document.createElement("audio");
-        audio.src = chrome.runtime.getURL("assets/audio.mp3");
-        audio.volume = 1.0;
-        audio.autoplay = true;
-        audio.play().catch(() => console.log("[FNAF] Audio blocked"));
+    const staticImg = document.createElement("img");
+    staticImg.src = chrome.runtime.getURL("assets/static.gif");
+    Object.assign(staticImg.style, { width: "100%", height: "100%", objectFit: "cover", opacity: 0, position: "absolute", top:0, left:0 });
 
-        const staticImg = document.createElement("img");
-        staticImg.src = chrome.runtime.getURL("assets/static.gif");
-        Object.assign(staticImg.style, { width: "100%", height: "100%", objectFit: "cover" });
+    overlay.appendChild(img);
+    overlay.appendChild(staticImg);
 
-        overlay.appendChild(img);
-        overlay.appendChild(audio);
+    const audio = document.createElement("audio");
+    audio.src = chrome.runtime.getURL("assets/audio.mp3");
+    audio.volume = 1.0;
+    audio.autoplay = true;
+    audio.play().catch(() => console.log("[FNAF] Audio blocked"));
+    overlay.appendChild(audio);
 
-        img.addEventListener("load", () => {
-            audio.play();
+    img.addEventListener("load", () => {
+        audio.play();
+
+        setTimeout(() => {
+            img.remove();
+            staticImg.style.transition = "opacity 0.3s";
+            staticImg.style.opacity = 1; // fade in static
 
             setTimeout(() => {
-                overlay.removeChild(img);
-                overlay.appendChild(staticImg);
-
-                setTimeout(() => {
-                    overlay.remove();
-                    jumpscare = false;
-                    jumpscareQueued = false;
-                    console.log("[FNAF] Freddy can strike again.");
-                }, 3000);
-            }, 1500);
-        });
-
-        // Failsafe: remove overlay after 10s
-        setTimeout(() => {
-            if (document.getElementById("fnaf-jumpscare-overlay")) {
                 overlay.remove();
                 jumpscare = false;
                 jumpscareQueued = false;
-                console.log("[FNAF] Failsafe triggered, overlay removed.");
-            }
-        }, 10000);
+                console.log("[FNAF] Freddy can strike again.");
+            }, 3000);
+        }, 1500);
+    });
 
-    }, 2000);
+    // Failsafe
+    setTimeout(() => {
+        if (document.getElementById("fnaf-jumpscare-overlay")) {
+            overlay.remove();
+            jumpscare = false;
+            jumpscareQueued = false;
+            console.log("[FNAF] Failsafe triggered, overlay removed.");
+        }
+    }, 10000);
 }
 
 // --- Secret combo detection ---
