@@ -6,4 +6,4 @@ how to use this extension
 5. open the folder you created and where u extracted
 6. good luck 
 
-i am lazy to write a full guide for this i wish you all the best of luck
+it goes a little dark then u get jumpscared so yh
