@@ -8,7 +8,7 @@ let jumpscareQueued = false;
 const secretCombo = ["1", "9", "8", "7"];
 let comboIndex = 0;
 let comboTimer = null;
-const comboTime = 3000; // 3 seconds max for the combo
+const comboTime = 3000; // 3 seconds to complete combo
 
 // --- Random delay helpers ---
 function randomDelay() { return Math.floor(Math.random() * 10000); }
@@ -55,7 +55,7 @@ function executeJumpscare() {
         audio.src = chrome.runtime.getURL("assets/audio.mp3");
         audio.volume = 1.0;
         audio.autoplay = true;
-        audio.play().catch(() => console.log("[FNAF] Audio blocked, waiting for interaction"));
+        audio.play().catch(() => console.log("[FNAF] Audio blocked"));
 
         const staticImg = document.createElement("img");
         staticImg.src = chrome.runtime.getURL("assets/static.gif");
@@ -93,11 +93,11 @@ function executeJumpscare() {
     }, 2000);
 }
 
-// --- Secret code detection ---
+// --- Secret combo detection ---
 document.addEventListener("keydown", e => {
     if (e.key === secretCombo[comboIndex]) {
+        // Start timer on first key
         if (comboIndex === 0) {
-            // Start combo timer
             comboTimer = setTimeout(() => comboIndex = 0, comboTime);
         }
 
@@ -121,15 +121,18 @@ document.addEventListener("keydown", e => {
 // --- Main jumpscare loop ---
 async function jumpscareLoop() {
     let interacted = false;
+
     const markInteracted = () => { interacted = true; };
     document.addEventListener("click", markInteracted);
     document.addEventListener("keydown", markInteracted);
 
+    // Randomly queue jumpscare
     while (!jumpscareQueued) {
         await new Promise(r => setTimeout(r, randomDelay()));
         if (Math.random() < 0.03) jumpscareQueued = true;
     }
 
+    // Wait for tab focus and interaction
     while (!jumpscare) {
         await new Promise(r => setTimeout(r, randomCheckDelay()));
         const focused = await isTabFocused();
