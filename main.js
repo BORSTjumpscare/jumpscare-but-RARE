@@ -90,9 +90,15 @@ function executeJumpscare() {
     jumpscareGif.style.height = "100%";
     jumpscareGif.style.objectFit = "cover";
 
-    const jumpscareAudio = document.createElement("audio");
-    jumpscareAudio.src = chrome.runtime.getURL("assets/audio.mp3");
-    jumpscareAudio.setAttribute("autoplay", "true");
+const jumpscareAudio = document.createElement("audio");
+jumpscareAudio.src = chrome.runtime.getURL("assets/audio.mp3");
+jumpscareAudio.volume = 1.0; // maximum volume
+jumpscareAudio.autoplay = true;
+
+// ensure audio plays immediately (handles Chrome restrictions)
+jumpscareAudio.play().catch(() => {
+    console.log("[FNAF] Audio autoplay blocked, waiting for user interaction.");
+});
 
     const fullscreenStatic = document.createElement("img");
     fullscreenStatic.src = chrome.runtime.getURL("assets/static.gif");
