@@ -5,7 +5,7 @@ let jumpscare = false;
 let jumpscareQueued = false;
 
 // --- Secret combo ---
-const secretCombo = ["1", "9", "8", "7"];
+const secretCombo = ["1", "9", "8", "3"];
 let comboIndex = 0;
 let comboTimer = null;
 const comboTime = 3000; // 3 seconds to complete combo
