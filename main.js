@@ -36,7 +36,6 @@ function isTabFocused() {
     return new Promise(function(resolve) {
         try {
             chrome.runtime.sendMessage({ action: "checkFocus" }, function(response) {
-                // Handle runtime errors
                 if (chrome.runtime.lastError) {
                     resolve(false);
                     return;
@@ -48,7 +47,7 @@ function isTabFocused() {
                     resolve(false);
                 }
             });
-        } catch (e) {
+        } catch (err) {
             resolve(false);
         }
     });
@@ -59,7 +58,7 @@ function executeJumpscare() {
     if (jumpscare) return;
     jumpscare = true;
 
-    const overlay = document.createElement("div");
+    var overlay = document.createElement("div");
     overlay.id = "fnaf-jumpscare-overlay";
     Object.assign(overlay.style, {
         position: "fixed",
