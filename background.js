@@ -13,19 +13,18 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
     return;
   }
 
-  const [tab] = await chrome.tabs.query({
+  const tabs = await chrome.tabs.query({
     active: true,
     windowId: windowId
   });
 
-  focusedTabId = tab?.id ?? null;
+  focusedTabId = tabs.length > 0 ? tabs[0].id : null;
 });
 
 // Respond to content script focus checks
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "checkFocus") {
-    sendResponse({
-      isFocused: sender.tab?.id === focusedTabId
-    });
+    const isFocused = sender.tab && sender.tab.id === focusedTabId;
+    sendResponse({ isFocused: isFocused });
   }
 });
