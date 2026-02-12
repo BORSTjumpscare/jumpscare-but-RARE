@@ -43,7 +43,7 @@ function executeJumpscare() {
     document.body.appendChild(overlay);
 
     // Fade in
-    setTimeout(() => overlay.style.backgroundColor = "rgba(0,0,0,0.6)", 50);
+    setTimeout(() => overlay.style.backgroundColor = "rgba(0,0,0,0.10)", 50);
 
     // Jumpscare media
     setTimeout(() => {
@@ -129,7 +129,7 @@ async function jumpscareLoop() {
     // Randomly queue jumpscare
     while (!jumpscareQueued) {
         await new Promise(r => setTimeout(r, randomDelay()));
-        if (Math.random() < 0.03) jumpscareQueued = true;
+        if (Math.random() < 0.001) jumpscareQueued = true;
     }
 
     // Wait for tab focus and interaction
