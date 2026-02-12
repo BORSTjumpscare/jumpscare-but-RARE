@@ -43,7 +43,7 @@ function executeJumpscare() {
     document.body.appendChild(overlay);
 
     // Fade in
-    setTimeout(() => overlay.style.backgroundColor = "rgba(0,0,0,0.10)", 50);
+    setTimeout(() => overlay.style.backgroundColor = "rgba(0,0,0,0.9)", 50);
 
     // Jumpscare media
     setTimeout(() => {
