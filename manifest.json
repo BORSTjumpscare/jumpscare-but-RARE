@@ -2,10 +2,8 @@
   "manifest_version": 3,
   "name": "RARE VERSION OF JUMPSCARE",
   "version": "1.0",
-  "description": "Random FNAF-style foxy jumpscare with secret combo trigger.",
-  "permissions": [
-    "tabs"
-  ],
+  "description": "Random FNAF-style Foxy jumpscare with secret combo trigger.",
+  "permissions": ["tabs"],
   "background": {
     "service_worker": "background.js"
   },
