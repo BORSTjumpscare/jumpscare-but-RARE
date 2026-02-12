@@ -34,13 +34,23 @@ const keyMap = {
 // --- Check if tab is focused ---
 function isTabFocused() {
     return new Promise(function(resolve) {
-        chrome.runtime.sendMessage({ action: "checkFocus" }, function(response) {
-            if (response && response.isFocused === true) {
-                resolve(true);
-            } else {
-                resolve(false);
-            }
-        });
+        try {
+            chrome.runtime.sendMessage({ action: "checkFocus" }, function(response) {
+                // Handle runtime errors
+                if (chrome.runtime.lastError) {
+                    resolve(false);
+                    return;
+                }
+
+                if (response && response.isFocused === true) {
+                    resolve(true);
+                } else {
+                    resolve(false);
+                }
+            });
+        } catch (e) {
+            resolve(false);
+        }
     });
 }
 
