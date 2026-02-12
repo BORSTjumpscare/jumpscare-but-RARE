@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "FNAF Jumpscare",
+  "name": "test V1 jumpscare",
   "version": "1.0",
   "description": "Random FNAF-style jumpscare with secret combo trigger.",
   "permissions": [
