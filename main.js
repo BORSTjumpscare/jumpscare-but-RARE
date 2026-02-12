@@ -68,21 +68,48 @@ function executeJumpscare() {
         height: "100vh",
         zIndex: "9999",
         backgroundColor: "rgba(0,0,0,0)",
-        transition: "background-color 2s"
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        transition: "background-color 2s",
+        overflow: "hidden"
     });
     document.body.appendChild(overlay);
 
-    // Fade in
+    // Fade in background
     setTimeout(() => overlay.style.backgroundColor = "rgba(0,0,0,0.9)", 50);
 
     setTimeout(() => {
+        // Style the Foxy GIF to cover the viewport and stay centered
+        Object.assign(assets.foxy.style, {
+            maxWidth: "100%",
+            maxHeight: "100%",
+            width: "auto",
+            height: "auto",
+            objectFit: "contain",
+            zIndex: "10000"
+        });
+
         overlay.appendChild(assets.foxy);
+
+        // Play audio
         assets.audio.currentTime = 0;
         assets.audio.play().catch(() => console.log("[FNAF] Audio blocked"));
 
-        // After foxy GIF shows
+        // After Foxy shows
         setTimeout(() => {
             overlay.removeChild(assets.foxy);
+
+            Object.assign(assets.static.style, {
+                position: "absolute",
+                top: "0",
+                left: "0",
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                zIndex: "10000"
+            });
+
             overlay.appendChild(assets.static);
 
             setTimeout(() => {
