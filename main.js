@@ -46,80 +46,75 @@ function executeJumpscare() {
     jumpscare = true;
 
     const overlay = document.createElement("div");
+    overlay.id = "fnaf-jumpscare-overlay";
+
     Object.assign(overlay.style, {
         position: "fixed",
         top: "0",
         left: "0",
         width: "100vw",
         height: "100vh",
-        zIndex: "9999",
-        backgroundColor: "rgba(0,0,0,0)",
+        zIndex: "999999",
+        backgroundColor: "black",
         overflow: "hidden"
     });
+
     document.body.appendChild(overlay);
 
-    // Fade in background
-    setTimeout(function() {
-        overlay.style.backgroundColor = "rgba(0,0,0,0.9)";
-    }, 50);
+    // Create Foxy image (fresh each time)
+    const foxy = new Image();
+    foxy.src = chrome.runtime.getURL("assets/foxy-jumpscare.gif");
 
+    Object.assign(foxy.style, {
+        position: "absolute",
+        top: "0",
+        left: "0",
+        width: "100%",
+        height: "100%",
+        objectFit: "cover"
+    });
+
+    overlay.appendChild(foxy);
+
+    // Play audio
+    assets.audio.currentTime = 0;
+    assets.audio.play().catch(function() {});
+
+    // Remove Foxy after 0.75 seconds
     setTimeout(function() {
-        // Create new Foxy image each time so it plays once
-        const foxy = new Image();
-        foxy.src = chrome.runtime.getURL("assets/foxy-jumpscare.gif");
-        Object.assign(foxy.style, {
+
+        if (foxy.parentNode) {
+            overlay.removeChild(foxy);
+        }
+
+        // Create static screen
+        const staticImg = new Image();
+        staticImg.src = chrome.runtime.getURL("assets/static.gif");
+
+        Object.assign(staticImg.style, {
             position: "absolute",
             top: "0",
             left: "0",
             width: "100%",
             height: "100%",
-            objectFit: "cover",
-            zIndex: "10000"
+            objectFit: "cover"
         });
-        overlay.appendChild(foxy);
 
-        // Play audio
-        assets.audio.currentTime = 0;
-        assets.audio.play().catch(function() { console.log("[FNAF] Audio blocked"); });
+        overlay.appendChild(staticImg);
 
-        // Remove Foxy faster (30% early)
+        // Remove static after 2 seconds
         setTimeout(function() {
-            overlay.removeChild(foxy);
 
-            // Create a fresh static screen
-            const staticImg = new Image();
-            staticImg.src = chrome.runtime.getURL("assets/static.gif");
-            Object.assign(staticImg.style, {
-                position: "absolute",
-                top: "0",
-                left: "0",
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                zIndex: "10000"
-            });
-            overlay.appendChild(staticImg);
-
-            setTimeout(function() {
+            if (overlay.parentNode) {
                 overlay.remove();
-                jumpscare = false;
-                jumpscareQueued = false;
-                console.log("[FNAF] Freddy can strike again.");
-            }, 3000);
-
-        }, 1000); // Foxy only shows for 1 second instead of 1.5 (about 30% shorter)
-
-        // Failsafe in case overlay stays
-        setTimeout(function() {
-            if (document.getElementById("fnaf-jumpscare-overlay")) {
-                overlay.remove();
-                jumpscare = false;
-                jumpscareQueued = false;
-                console.log("[FNAF] Failsafe triggered, overlay removed.");
             }
-        }, 10000);
 
-    }, 2000);
+            jumpscare = false;
+            jumpscareQueued = false;
+
+        }, 2000); // STATIC = 2 seconds
+
+    }, 750); // FOXY = 0.75 seconds
 }
 
 // --- Secret combo detection ---
