@@ -68,10 +68,6 @@ function executeJumpscare() {
         height: "100vh",
         zIndex: "9999",
         backgroundColor: "rgba(0,0,0,0)",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        transition: "background-color 2s",
         overflow: "hidden"
     });
     document.body.appendChild(overlay);
@@ -80,13 +76,14 @@ function executeJumpscare() {
     setTimeout(() => overlay.style.backgroundColor = "rgba(0,0,0,0.9)", 50);
 
     setTimeout(() => {
-        // Style the Foxy GIF to cover the viewport and stay centered
+        // Make Foxy GIF cover the entire overlay
         Object.assign(assets.foxy.style, {
-            maxWidth: "100%",
-            maxHeight: "100%",
-            width: "auto",
-            height: "auto",
-            objectFit: "contain",
+            position: "absolute",
+            top: "0",
+            left: "0",
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
             zIndex: "10000"
         });
 
