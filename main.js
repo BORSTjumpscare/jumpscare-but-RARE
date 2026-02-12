@@ -48,7 +48,7 @@ function executeJumpscare() {
     // Jumpscare media
     setTimeout(() => {
         const img = document.createElement("img");
-        img.src = chrome.runtime.getURL("assets/fredbear.gif");
+        img.src = chrome.runtime.getURL("assets/fnaf-foxy.gif");
         Object.assign(img.style, { width: "100%", height: "100%", objectFit: "cover" });
 
         const audio = document.createElement("audio");
