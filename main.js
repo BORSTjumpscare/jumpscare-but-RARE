@@ -44,11 +44,16 @@ const keyMap = {
     Digit9: "9"
 };
 
-// --- Check if tab is focused ---
+// --- Check if tab is focused (backward-compatible) ---
 function isTabFocused() {
-    return new Promise(resolve => {
-        chrome.runtime.sendMessage({ action: "checkFocus" }, response => {
-            resolve(response?.isFocused ?? false);
+    return new Promise(function(resolve) {
+        chrome.runtime.sendMessage({ action: "checkFocus" }, function(response) {
+            // fallback to false if response is null or undefined
+            if (response && response.isFocused) {
+                resolve(true);
+            } else {
+                resolve(false);
+            }
         });
     });
 }
@@ -73,9 +78,11 @@ function executeJumpscare() {
     document.body.appendChild(overlay);
 
     // Fade in background
-    setTimeout(() => overlay.style.backgroundColor = "rgba(0,0,0,0.9)", 50);
+    setTimeout(function() {
+        overlay.style.backgroundColor = "rgba(0,0,0,0.9)";
+    }, 50);
 
-    setTimeout(() => {
+    setTimeout(function() {
         // Make Foxy GIF cover the entire overlay
         Object.assign(assets.foxy.style, {
             position: "absolute",
@@ -91,10 +98,12 @@ function executeJumpscare() {
 
         // Play audio
         assets.audio.currentTime = 0;
-        assets.audio.play().catch(() => console.log("[FNAF] Audio blocked"));
+        assets.audio.play().catch(function() {
+            console.log("[FNAF] Audio blocked");
+        });
 
         // After Foxy shows
-        setTimeout(() => {
+        setTimeout(function() {
             overlay.removeChild(assets.foxy);
 
             Object.assign(assets.static.style, {
@@ -109,7 +118,7 @@ function executeJumpscare() {
 
             overlay.appendChild(assets.static);
 
-            setTimeout(() => {
+            setTimeout(function() {
                 overlay.remove();
                 jumpscare = false;
                 jumpscareQueued = false;
@@ -118,7 +127,7 @@ function executeJumpscare() {
         }, 1500);
 
         // Failsafe
-        setTimeout(() => {
+        setTimeout(function() {
             if (document.getElementById("fnaf-jumpscare-overlay")) {
                 overlay.remove();
                 jumpscare = false;
@@ -131,11 +140,15 @@ function executeJumpscare() {
 }
 
 // --- Secret combo detection ---
-document.addEventListener("keydown", e => {
-    const key = keyMap[e.code] || e.key; // map numpad to numbers
+document.addEventListener("keydown", function(e) {
+    var key = keyMap[e.code] || e.key;
 
     if (key === secretCombo[comboIndex]) {
-        if (comboIndex === 0) comboTimer = setTimeout(() => comboIndex = 0, comboTime);
+        if (comboIndex === 0) {
+            comboTimer = setTimeout(function() {
+                comboIndex = 0;
+            }, comboTime);
+        }
         comboIndex++;
 
         if (comboIndex === secretCombo.length) {
@@ -155,22 +168,26 @@ document.addEventListener("keydown", e => {
 
 // --- Main jumpscare loop ---
 async function jumpscareLoop() {
-    let interacted = false;
-    const markInteracted = () => { interacted = true; };
+    var interacted = false;
+    var markInteracted = function() { interacted = true; };
     document.addEventListener("click", markInteracted);
     document.addEventListener("keydown", markInteracted);
 
     while (true) {
         // Randomly queue jumpscare
         while (!jumpscareQueued) {
-            await new Promise(r => setTimeout(r, Math.floor(Math.random() * 10000)));
+            await new Promise(function(r) {
+                setTimeout(r, Math.floor(Math.random() * 10000));
+            });
             if (Math.random() < 0.001) jumpscareQueued = true;
         }
 
         // Wait for tab focus & interaction
         while (!jumpscare) {
-            await new Promise(r => setTimeout(r, Math.floor(Math.random() * 5000)));
-            const focused = await isTabFocused();
+            await new Promise(function(r) {
+                setTimeout(r, Math.floor(Math.random() * 5000));
+            });
+            var focused = await isTabFocused();
             if (focused && interacted && !jumpscare) {
                 if (Math.random() < 0.5) {
                     console.log("[FNAF] Freddy backed out!");
