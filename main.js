@@ -4,15 +4,10 @@ console.log("FNAF jumpscare content script loaded!");
 let jumpscare = false;
 let jumpscareQueued = false;
 
-// --- Preload assets ---
+// --- Preload audio ---
 const assets = {
-    foxy: new Image(),
-    static: new Image(),
     audio: new Audio()
 };
-
-assets.foxy.src = chrome.runtime.getURL("assets/foxy-jumpscare.gif");
-assets.static.src = chrome.runtime.getURL("assets/static.gif");
 assets.audio.src = chrome.runtime.getURL("assets/audio.mp3");
 assets.audio.volume = 1.0;
 
@@ -36,16 +31,8 @@ function isTabFocused() {
     return new Promise(function(resolve) {
         try {
             chrome.runtime.sendMessage({ action: "checkFocus" }, function(response) {
-                if (chrome.runtime.lastError) {
-                    resolve(false);
-                    return;
-                }
-
-                if (response && response.isFocused === true) {
-                    resolve(true);
-                } else {
-                    resolve(false);
-                }
+                if (chrome.runtime.lastError) { resolve(false); return; }
+                resolve(response && response.isFocused === true);
             });
         } catch (err) {
             resolve(false);
@@ -58,8 +45,7 @@ function executeJumpscare() {
     if (jumpscare) return;
     jumpscare = true;
 
-    var overlay = document.createElement("div");
-    overlay.id = "fnaf-jumpscare-overlay";
+    const overlay = document.createElement("div");
     Object.assign(overlay.style, {
         position: "fixed",
         top: "0",
@@ -78,8 +64,10 @@ function executeJumpscare() {
     }, 50);
 
     setTimeout(function() {
-        // Foxy GIF fills entire screen
-        Object.assign(assets.foxy.style, {
+        // Create new Foxy image each time so it plays once
+        const foxy = new Image();
+        foxy.src = chrome.runtime.getURL("assets/foxy-jumpscare.gif");
+        Object.assign(foxy.style, {
             position: "absolute",
             top: "0",
             left: "0",
@@ -88,19 +76,20 @@ function executeJumpscare() {
             objectFit: "cover",
             zIndex: "10000"
         });
-        overlay.appendChild(assets.foxy);
+        overlay.appendChild(foxy);
 
         // Play audio
         assets.audio.currentTime = 0;
-        assets.audio.play().catch(function() {
-            console.log("[FNAF] Audio blocked");
-        });
+        assets.audio.play().catch(function() { console.log("[FNAF] Audio blocked"); });
 
-        // After Foxy shows
+        // Remove Foxy faster (30% early)
         setTimeout(function() {
-            overlay.removeChild(assets.foxy);
+            overlay.removeChild(foxy);
 
-            Object.assign(assets.static.style, {
+            // Create a fresh static screen
+            const staticImg = new Image();
+            staticImg.src = chrome.runtime.getURL("assets/static.gif");
+            Object.assign(staticImg.style, {
                 position: "absolute",
                 top: "0",
                 left: "0",
@@ -109,8 +98,7 @@ function executeJumpscare() {
                 objectFit: "cover",
                 zIndex: "10000"
             });
-
-            overlay.appendChild(assets.static);
+            overlay.appendChild(staticImg);
 
             setTimeout(function() {
                 overlay.remove();
@@ -118,9 +106,10 @@ function executeJumpscare() {
                 jumpscareQueued = false;
                 console.log("[FNAF] Freddy can strike again.");
             }, 3000);
-        }, 1500);
 
-        // Failsafe
+        }, 1000); // Foxy only shows for 1 second instead of 1.5 (about 30% shorter)
+
+        // Failsafe in case overlay stays
         setTimeout(function() {
             if (document.getElementById("fnaf-jumpscare-overlay")) {
                 overlay.remove();
@@ -135,14 +124,10 @@ function executeJumpscare() {
 
 // --- Secret combo detection ---
 document.addEventListener("keydown", function(e) {
-    var key = keyMap[e.code] || e.key;
+    const key = keyMap[e.code] || e.key;
 
     if (key === secretCombo[comboIndex]) {
-        if (comboIndex === 0) {
-            comboTimer = setTimeout(function() {
-                comboIndex = 0;
-            }, comboTime);
-        }
+        if (comboIndex === 0) comboTimer = setTimeout(function() { comboIndex = 0; }, comboTime);
         comboIndex++;
 
         if (comboIndex === secretCombo.length) {
@@ -162,26 +147,20 @@ document.addEventListener("keydown", function(e) {
 
 // --- Main jumpscare loop ---
 async function jumpscareLoop() {
-    var interacted = false;
-    var markInteracted = function() { interacted = true; };
+    let interacted = false;
+    const markInteracted = function() { interacted = true; };
     document.addEventListener("click", markInteracted);
     document.addEventListener("keydown", markInteracted);
 
     while (true) {
-        // Randomly queue jumpscare
         while (!jumpscareQueued) {
-            await new Promise(function(r) {
-                setTimeout(r, Math.floor(Math.random() * 10000));
-            });
+            await new Promise(function(r) { setTimeout(r, Math.floor(Math.random() * 10000)); });
             if (Math.random() < 0.001) jumpscareQueued = true;
         }
 
-        // Wait for tab focus & interaction
         while (!jumpscare) {
-            await new Promise(function(r) {
-                setTimeout(r, Math.floor(Math.random() * 5000));
-            });
-            var focused = await isTabFocused();
+            await new Promise(function(r) { setTimeout(r, Math.floor(Math.random() * 5000)); });
+            const focused = await isTabFocused();
             if (focused && interacted && !jumpscare) {
                 if (Math.random() < 0.5) {
                     console.log("[FNAF] Freddy backed out!");
