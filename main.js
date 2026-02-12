@@ -24,32 +24,18 @@ const comboTime = 3000;
 
 // Map numpad keys to number row
 const keyMap = {
-    Numpad1: "1",
-    Numpad2: "2",
-    Numpad3: "3",
-    Numpad4: "4",
-    Numpad5: "5",
-    Numpad6: "6",
-    Numpad7: "7",
-    Numpad8: "8",
-    Numpad9: "9",
-    Digit1: "1",
-    Digit2: "2",
-    Digit3: "3",
-    Digit4: "4",
-    Digit5: "5",
-    Digit6: "6",
-    Digit7: "7",
-    Digit8: "8",
-    Digit9: "9"
+    Numpad1: "1", Numpad2: "2", Numpad3: "3", Numpad4: "4",
+    Numpad5: "5", Numpad6: "6", Numpad7: "7", Numpad8: "8",
+    Numpad9: "9", Digit1: "1", Digit2: "2", Digit3: "3",
+    Digit4: "4", Digit5: "5", Digit6: "6", Digit7: "7",
+    Digit8: "8", Digit9: "9"
 };
 
-// --- Check if tab is focused (backward-compatible) ---
+// --- Check if tab is focused ---
 function isTabFocused() {
     return new Promise(function(resolve) {
         chrome.runtime.sendMessage({ action: "checkFocus" }, function(response) {
-            // fallback to false if response is null or undefined
-            if (response && response.isFocused) {
+            if (response && response.isFocused === true) {
                 resolve(true);
             } else {
                 resolve(false);
@@ -83,7 +69,7 @@ function executeJumpscare() {
     }, 50);
 
     setTimeout(function() {
-        // Make Foxy GIF cover the entire overlay
+        // Foxy GIF fills entire screen
         Object.assign(assets.foxy.style, {
             position: "absolute",
             top: "0",
@@ -93,7 +79,6 @@ function executeJumpscare() {
             objectFit: "cover",
             zIndex: "10000"
         });
-
         overlay.appendChild(assets.foxy);
 
         // Play audio
