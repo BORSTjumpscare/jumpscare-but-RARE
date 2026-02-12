@@ -11,7 +11,7 @@ const assets = {
     audio: new Audio()
 };
 
-assets.foxy.src = chrome.runtime.getURL("assets/fnaf-foxy.gif");
+assets.foxy.src = chrome.runtime.getURL("assets/foxy-jumpscare.gif");
 assets.static.src = chrome.runtime.getURL("assets/static.gif");
 assets.audio.src = chrome.runtime.getURL("assets/audio.mp3");
 assets.audio.volume = 1.0;
